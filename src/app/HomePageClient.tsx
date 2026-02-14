@@ -18,6 +18,7 @@ import type { SortKey, SortOrder } from "@/lib/types";
 import { sortProductsClientSide } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useRouter, useSearchParams } from "next/navigation";
+import UpdatingBar from "@/components/UpdatingBar";
 
 const LIMIT = 12;
 
@@ -59,7 +60,8 @@ export default function HomePageClient() {
     const params = new URLSearchParams(sp.toString());
 
     if (typeof next.page === "number") params.set("page", String(next.page));
-    if (typeof next.category === "string") params.set("category", next.category);
+    if (typeof next.category === "string")
+      params.set("category", next.category);
 
     if (typeof next.sortBy === "string")
       next.sortBy ? params.set("sortBy", next.sortBy) : params.delete("sortBy");
@@ -128,6 +130,9 @@ export default function HomePageClient() {
     toast.success("Added to cart");
   }
 
+  const isInitialLoading = productsQuery.isLoading && !productsQuery.data;
+  const isUpdating = productsQuery.isFetching && !!productsQuery.data;
+
   return (
     <div className="min-h-screen bg-[radial-gradient(1200px_circle_at_20%_-10%,theme(colors.indigo.200/.35),transparent_55%),radial-gradient(900px_circle_at_80%_0%,theme(colors.cyan.200/.25),transparent_50%)] dark:bg-[radial-gradient(1200px_circle_at_20%_-10%,theme(colors.indigo.500/.15),transparent_55%),radial-gradient(900px_circle_at_80%_0%,theme(colors.cyan.500/.12),transparent_50%)]">
       <Header cartCount={cartCount} />
@@ -146,11 +151,14 @@ export default function HomePageClient() {
           resultsCount={productsQuery.data?.total}
         />
 
-        {productsQuery.isLoading ? <GridSkeleton count={12} /> : null}
+        <UpdatingBar show={isUpdating} />
+        {isInitialLoading ? <GridSkeleton count={12} /> : null}
 
         {productsQuery.isError ? (
           <section className="rounded-2xl border border-black/5 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
-            <p className="font-semibold text-foreground">Failed to load products</p>
+            <p className="font-semibold text-foreground">
+              Failed to load products
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {(productsQuery.error as Error).message}
             </p>
@@ -161,7 +169,8 @@ export default function HomePageClient() {
           <section className="rounded-2xl border border-black/5 bg-white/70 p-8 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
             <p className="text-base font-semibold">No results found</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Try a different search term, clear filters, or choose “All Categories”.
+              Try a different search term, clear filters, or choose “All
+              Categories”.
             </p>
           </section>
         ) : null}
