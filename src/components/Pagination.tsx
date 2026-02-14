@@ -9,12 +9,16 @@ type Props = {
   onPageChange: (page: number) => void;
 };
 
-export default function Pagination({ page, total, limit, onPageChange }: Props) {
+export default function Pagination({
+  page,
+  total,
+  limit,
+  onPageChange,
+}: Props) {
   const pages = Math.max(1, Math.ceil(total / limit));
   const canPrev = page > 1;
   const canNext = page < pages;
 
-  // how many page numbers to show around current
   const delta = 2;
 
   const range: number[] = [];
@@ -40,6 +44,17 @@ export default function Pagination({ page, total, limit, onPageChange }: Props) 
     rangeWithDots.push(pages);
   }
 
+  // helper to change page + scroll to top
+  function goToPage(nextPage: number) {
+    onPageChange(nextPage);
+
+    // smooth scroll to top for better UX
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
   return (
     <nav
       className="flex flex-col sm:flex-row items-center justify-between gap-4"
@@ -48,7 +63,7 @@ export default function Pagination({ page, total, limit, onPageChange }: Props) 
       {/* Previous */}
       <button
         className="inline-flex items-center gap-2 rounded-xl border border-black/5 bg-white/60 px-3 py-2 text-sm shadow-sm hover:bg-white/80 disabled:opacity-50 disabled:hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => goToPage(page - 1)}
         disabled={!canPrev}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -68,7 +83,8 @@ export default function Pagination({ page, total, limit, onPageChange }: Props) 
           ) : (
             <button
               key={item}
-              onClick={() => onPageChange(item)}
+              onClick={() => goToPage(item)}
+              aria-current={item === page ? "page" : undefined}
               className={[
                 "min-w-9 h-9 rounded-lg text-sm transition",
                 item === page
@@ -85,7 +101,7 @@ export default function Pagination({ page, total, limit, onPageChange }: Props) 
       {/* Next */}
       <button
         className="inline-flex items-center gap-2 rounded-xl border border-black/5 bg-white/60 px-3 py-2 text-sm shadow-sm hover:bg-white/80 disabled:opacity-50 disabled:hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => goToPage(page + 1)}
         disabled={!canNext}
       >
         Next
